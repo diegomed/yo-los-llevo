@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Button, FlatList, Modal, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, Button, FlatList, Modal } from 'react-native';
 
 import { Task } from './UI/Task';
 import { AddTaskForm } from './UI/AddTaskForm';
@@ -8,15 +8,27 @@ import { useTasksAPI } from './hooks/useTasksAPI';
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   const { getTasks, addTask } = useTasksAPI();
 
-  useEffect(() => {
+  function fetchData() {
+    setIsLoading(true);
+    setIsFetching(true);
     getTasks().then(
-      res => setTasks(res.data)
+      res => {
+        setTasks(res.data);
+        setIsLoading(false);
+        setIsFetching(false);
+      }
     ).catch(
       err => console.log(err)
     );
+  }
+
+  useEffect(() => {
+    fetchData();
   }, [])
 
   return (
@@ -27,19 +39,20 @@ export default function App() {
       <View style={styles.button}>
         <Button title='Agregar tarea' onPress={() => setModalVisible(true)}/>
       </View>
+      {!isLoading && tasks.length === 0 ? <Text style={styles.noTasksMsg}>No hay tareas pendientes.</Text> : null}
       <FlatList
         data={tasks}
-        renderItem={(task) => {
+        renderItem={task => {
           return (
             <Task name={task.item.name} description={task.item.description} />
           )
         }}
-        keyExtractor={(m, i) => i}
+        keyExtractor={task => task.id}
+        refreshing={isFetching}
+        onRefresh={fetchData}
       />
       <Modal visible={modalVisible} animationType='slide'>
-        <TouchableWithoutFeedback onPress={() => console.log('Touched!')}>
-          <AddTaskForm onCancel={setModalVisible} onAdd={addTask} onAddFinish={setTasks} />
-        </TouchableWithoutFeedback>
+        <AddTaskForm onCancel={setModalVisible} onAdd={addTask} onAddFinish={setTasks} />
       </Modal>
     </View>
   );
@@ -69,5 +82,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row'
+  },
+  noTasksMsg: {
+    color: 'gray',
+    textAlign: 'center',
+    fontSize: 24,
+    marginVertical: 100
   }
 });

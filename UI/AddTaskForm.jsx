@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, Button } from 'react-native';
+import { StyleSheet, View, TextInput, Button, Keyboard } from 'react-native';
 
 import { useTasksAPI } from '../hooks/useTasksAPI';
 
@@ -17,8 +17,8 @@ export function AddTaskForm(props) {
 
         getTasks()
             .then(res => {
+                props.onCancel(false);
                 props.onAddFinish(res.data);
-                props.onCancel(false)
             })
             .catch(err => console.log(err));
     }
@@ -34,6 +34,7 @@ export function AddTaskForm(props) {
             multiline={true}
             numberOfLines={10}
             style={styles.textarea}
+            onBlur={Keyboard.dismiss}
             onChangeText={(desc) => setDescription(desc)}/>
           <View style={styles.buttonContainer}>
             <View style={styles.button}>
