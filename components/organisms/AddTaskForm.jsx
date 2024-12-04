@@ -1,22 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View, TextInput, Button, Keyboard } from 'react-native';
+import Palette from '../../utils/colors';
+import { PrimaryButton } from '../atoms/PrimaryButton';
 
-export function AddTaskForm({ onSubmit, onCancel }) {
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [description, setDescription] = useState('');
+export function AddTaskForm({ onSubmit, onCancel, isUpdate, data }) {
+  const [name, setName] = useState(isUpdate ? data.name : '');
+  const [date, setDate] = useState(isUpdate ? data.date : '');
+  const [description, setDescription] = useState(isUpdate ? data.description : '');
+  const [submitButtonTitle, setSubmitButtonTitle] = useState('Agregar');
 
-  function submitTask() {
-      onSubmit({ name, date, description })
-          .then(res => onCancel(false))
-          .catch(err => console.log(err));
-  }
+  useEffect(() => {
+    setSubmitButtonTitle(isUpdate ? 'Editar' : 'Agregar');
+  }, [])
 
   return (
       <View style={styles.modalContainer}>
         <View style={styles.nameAndDateContainer}>
-          <TextInput placeholder='Su nombre y apellido...' style={[styles.input, { width: '55%' }]} onChangeText={(name) => setName(name)}/>
-          <TextInput placeholder='DD/MM/YYYY' style={[styles.input, { width: '30%' }]} onChangeText={(date) => setDate(date)}/>
+          <TextInput
+            placeholder='Su nombre y apellido...'
+            style={[styles.input, { width: '55%' }]}
+            onChangeText={(name) => setName(name)}
+            value={name}
+          />
+          <TextInput
+            placeholder='YYYY-MM-DD'
+            style={[styles.input, { width: '30%' }]}
+            onChangeText={(date) => setDate(date)}
+            value={date}
+          />
         </View>
         <TextInput
           placeholder='Cual es la tarea...'
@@ -24,13 +35,15 @@ export function AddTaskForm({ onSubmit, onCancel }) {
           numberOfLines={10}
           style={styles.textarea}
           onBlur={Keyboard.dismiss}
-          onChangeText={(desc) => setDescription(desc)}/>
+          onChangeText={(desc) => setDescription(desc)}
+          value={description}
+        />
         <View style={styles.buttonContainer}>
           <View style={styles.button}>
-            <Button title='Cancelar' onPress={() => onCancel(false)}/>
+            <PrimaryButton onPress={() => onCancel(false)} isAccent>Cancelar</PrimaryButton>
           </View>
           <View style={styles.button}>
-            <Button title='Agregar' onPress={() => submitTask()}/>
+            <PrimaryButton onPress={() => onSubmit({ id: data?._id, name, date, description })}>{submitButtonTitle}</PrimaryButton>
           </View>
         </View>
       </View>
@@ -39,28 +52,30 @@ export function AddTaskForm({ onSubmit, onCancel }) {
 
 const styles = StyleSheet.create({
   button: {
+    flex: 1,
     margin: 10
   },
   buttonContainer: {
+    paddingHorizontal: 15,
     flexDirection: 'row'
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'ghostwhite'
+    backgroundColor: Palette.primary600
   },
   input: {
-    borderColor: 'lightgray',
+    borderColor: Palette.primary800,
     borderWidth: 1,
     borderRadius: 5,
     margin: 10,
     padding: 10,
     width: '55%',
-    backgroundColor: 'white'
+    backgroundColor: Palette.primary200
   },
   textarea: {
-    borderColor: 'lightgray',
+    borderColor: Palette.primary800,
     borderWidth: 1,
     borderRadius: 5,
     margin: 10,
@@ -68,7 +83,7 @@ const styles = StyleSheet.create({
     height: 200,
     textAlignVertical: 'top',
     width: '90%',
-    backgroundColor: 'white'
+    backgroundColor: Palette.primary200
   },
   nameAndDateContainer: {
     flexDirection: 'row'
